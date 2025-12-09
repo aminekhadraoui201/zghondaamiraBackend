@@ -9,12 +9,12 @@ const app = express();
 
 app.use(cors({
   origin: [
-    "https://zghondaavocat.fr",          // ton site principal
-    "https://www.zghondaavocat.fr",
-    "http://zghondaavocat.fr/amiraadmin",    // si tu as un admin
-    "hhttp://zghondaavocat.fr/",      // backend si sur LWS
-    "https://ton-backend.onrender.com",  // si tu l’héberges sur Render
-  ],
+    
+    "https://zghondaavocat.fr",        // site principal
+    "https://www.zghondaavocat.fr",    // www
+    "http://localhost:8080",            // frontend local
+  ], // si tu l’héberges sur Render
+  
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
