@@ -12,14 +12,18 @@ app.use(cors({
     
     "https://zghondaavocat.fr",        // site principal
     "https://www.zghondaavocat.fr",    // www
-    "http://localhost:8080",            // frontend local
+    "http://localhost:8080",   
+    "https://zghondaavocat.fr/amiraadmin",          // frontend local
   ], // si tu l’héberges sur Render
   
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
-app.use(express.json());
-
+// Middleware pour logger chaque requête
+app.use((req, res, next) => {
+  console.log(`➡️  Requête: ${req.method} ${req.url}`);
+  next();
+});
 // Connexion MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
@@ -28,6 +32,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes CRUD rendez-vous + Calendly
 app.use("/api/rendezvous", rendezVousRoutes);
 
+  console.log("aaaaaaaaaaaaaaaaaaaaaaaa")
 
 
 // Lancer serveur

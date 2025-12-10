@@ -18,6 +18,7 @@ const rendezVousSchema = new mongoose.Schema({
   },
 
   date: { type: Date, required: true },
+  heure: {String},
   message: { type: String },
 
   fichiers: [{ type: String }],

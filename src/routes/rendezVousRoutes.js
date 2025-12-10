@@ -1,6 +1,7 @@
 import express from "express";
 import * as controller from "../controllers/rendezVousController.js";
 import  RendezVous  from "../models/RendezVous.js"; // ton modèle Mongoose
+import { getDisponibilites } from "../controllers/rendezVousController.js";
 
 const router = express.Router();
 
@@ -13,7 +14,11 @@ router.delete("/:id", controller.remove);
 router.post("/confirm/:id", controller.confirmRendezVous);
 router.post("/pay", controller.payRendezVous);
 
-// Créer un rendez-vous + générer lien Google Calendar
+router.delete("/old", controller.deleteOldRendezVous);
+router.get("/disponibilites", (req, res) => {
+  console.log("➡️ Route /disponibilites appelée");
+  getDisponibilites(req, res);
+});
 router.post("/create-event", async (req, res) => {
   try {
     const { nom, prenom, email, telephone, date, time, service } = req.body;
