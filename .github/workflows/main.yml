@@ -1,0 +1,15 @@
+name: Wake Backend
+
+on:
+  schedule:
+    - cron: "*/1 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send ping to backend
+        run: |
+          curl -X GET "https://zghondaamirabackend.onrender.com/api/rendezvous"
