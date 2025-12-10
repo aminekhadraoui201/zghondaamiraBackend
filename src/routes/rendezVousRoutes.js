@@ -57,7 +57,7 @@ router.post("/create-event", async (req, res) => {
 
 
 
-router.post("/", controller.createRendezVous);
+router.post("/", controller.createRendezVous1);
 router.get("/", controller.getAll);
 router.get("/:id", controller.getOne);
 router.put("/:id", controller.update);

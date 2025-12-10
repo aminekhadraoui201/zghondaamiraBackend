@@ -233,3 +233,55 @@ export const createEvent = async (req, res) => {
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
+
+export const createRendezVous1 = async (req, res) => {
+  try {
+    const rdv = new RendezVous(req.body);
+    await rdv.save();
+
+    let clientSecret = null;
+
+    if (rdv.service.price > 0) {
+      // ⚡️ montant minimum pour test live = 1 centime
+      const amountToPay = Math.min(rdv.service.price * 100, 10); // max 10 cents = 0,10 €
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amountToPay, // 1 centime ou max 10 cents
+        currency: "eur",
+        metadata: { rendezVousId: rdv._id.toString() },
+        capture_method: "manual", // permet de créer mais ne pas capturer immédiatement
+      });
+
+      clientSecret = paymentIntent.client_secret;
+    }
+
+    res.status(201).json({ rendezVous: rdv, clientSecret });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+};
+
+// Pour capturer le paiement après test
+export const capturePayment = async (req, res) => {
+  try {
+    const { paymentIntentId } = req.body;
+    const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
+    res.json({ paymentIntent });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Pour annuler le paiement
+export const cancelPayment = async (req, res) => {
+  try {
+    const { paymentIntentId } = req.body;
+    const paymentIntent = await stripe.paymentIntents.cancel(paymentIntentId);
+    res.json({ paymentIntent });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
