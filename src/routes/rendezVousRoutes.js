@@ -57,7 +57,7 @@ router.post("/create-event", async (req, res) => {
 
 
 
-router.post("/", controller.createRendezVous1);
+router.post("/", controller.createRendezVous);
 router.get("/", controller.getAll);
 router.get("/:id", controller.getOne);
 router.put("/:id", controller.update);
@@ -111,7 +111,20 @@ router.post("/create-event", async (req, res) => {
 
 
 
+app.post("/pay-test", async (req, res) => {
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 10,              // 10 centimes = 0.10 €
+      currency: "eur",
+      description: "Test payment 0.10€",
+    });
 
+    res.json({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 
