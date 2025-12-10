@@ -17,8 +17,11 @@ const rendezVousSchema = new mongoose.Schema({
     price: Number
   },
 
-  date: { type: Date, required: true },
-  heure: {String},
+  isPaid: { type: Boolean, default: false },
+isConfirmed: { type: Boolean, default: false },
+date: { type: Date, required: true },
+heure: { type: String },
+
   message: { type: String },
 
   fichiers: [{ type: String }],

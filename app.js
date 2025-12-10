@@ -7,18 +7,23 @@ import rendezVousRoutes from "./src/routes/rendezVousRoutes.js";
 
 const app = express();
 
-app.use(cors({
-  origin: [
+// app.use(cors({
+//   origin: [
     
-    "https://zghondaavocat.fr",        // site principal
-    "https://www.zghondaavocat.fr",    // www
-    "http://localhost:8080",   
-    "https://zghondaavocat.fr/amiraadmin",          // frontend local
-  ], // si tu l’héberges sur Render
+//     "https://zghondaavocat.fr",        // site principal
+//     "https://www.zghondaavocat.fr",    // www
+//     "http://localhost:8080",   
+//     "https://zghondaavocat.fr/amiraadmin",          // frontend local
+//   ], // si tu l’héberges sur Render
   
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   credentials: true
+// }));
+app.use(cors());
+app.use(express.json());
+
+// app.use(express.json());
+
 // Middleware pour logger chaque requête
 app.use((req, res, next) => {
   console.log(`➡️  Requête: ${req.method} ${req.url}`);
@@ -39,4 +44,4 @@ app.use("/api/rendezvous", rendezVousRoutes);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Serveur running sur port ${PORT}`));
 
-export default app; // ⚠️ export default pour pouvoir l'importer ailleurs
+export default app; 

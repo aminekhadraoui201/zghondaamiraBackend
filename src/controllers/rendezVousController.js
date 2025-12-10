@@ -4,48 +4,7 @@ import RendezVous from "../models/RendezVous.js";
 import Stripe from "stripe";
 
 
-
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-
-// // 📌 1. Créer un rendez-vous + créer un paiement Stripe
-// export const createRendezVous = async (req, res) => {
-//   try {
-//     const data = req.body;
-
-//     let paymentIntent = null;
-//     let statutPaiement = "non payé";
-
-//     // Si le service est payant, créer PaymentIntent
-//     if (data.service?.price > 0) {
-//       paymentIntent = await stripe.paymentIntents.create({
-//         amount: Math.round(data.service.price * 100),
-//         currency: "usd",
-//         metadata: { email: data.email },
-//       });
-
-//       statutPaiement = "en attente";
-//     }
-
-//     // Création du rendez-vous
-//     const rdv = await RendezVous.create({
-//       ...data,
-//       statutPaiement,
-//       paymentIntentId: paymentIntent ? paymentIntent.id : null,
-//     });
-
-//     res.json({
-//       message: "Rendez-vous créé",
-//       rendezVous: rdv,
-//       clientSecret: paymentIntent ? paymentIntent.client_secret : null,
-//     });
-
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Erreur serveur" });
-//   }
-// };
 
 export const getAll = async (req, res) => {
   try {
@@ -117,37 +76,37 @@ export const createRendezVous = async (req, res) => {
   }
 };
 
-// Confirmer un RDV après paiement
-export const confirmRendezVous = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const rdv = await RendezVous.findById(id);
-    if (!rdv) return res.status(404).json({ error: "RDV introuvable" });
+// // Confirmer un RDV après paiement
+// export const confirmRendezVous = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const rdv = await RendezVous.findById(id);
+//     if (!rdv) return res.status(404).json({ error: "RDV introuvable" });
 
-    rdv.isPaid = true;
-    await rdv.save();
-    res.json({ message: "RDV confirmé", rendezVous: rdv });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-};
+//     rdv.isPaid = true;
+//     await rdv.save();
+//     res.json({ message: "RDV confirmé", rendezVous: rdv });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Erreur serveur" });
+//   }
+// };
 
-// Marquer comme payé (Stripe)
-export const payRendezVous = async (req, res) => {
-  try {
-    const { rendezVousId } = req.body;
-    const rdv = await RendezVous.findById(rendezVousId);
-    if (!rdv) return res.status(404).json({ error: "RDV introuvable" });
+// // Marquer comme payé (Stripe)
+// export const payRendezVous = async (req, res) => {
+//   try {
+//     const { rendezVousId } = req.body;
+//     const rdv = await RendezVous.findById(rendezVousId);
+//     if (!rdv) return res.status(404).json({ error: "RDV introuvable" });
 
-    rdv.isPaid = true;
-    await rdv.save();
-    res.json({ message: "Paiement enregistré", rendezVous: rdv });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-};
+//     rdv.isPaid = true;
+//     await rdv.save();
+//     res.json({ message: "Paiement enregistré", rendezVous: rdv });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Erreur serveur" });
+//   }
+// };
 export const getDisponibilites = async (req, res) => {
   try {
     const { date } = req.query;
@@ -184,23 +143,93 @@ export const getDisponibilites = async (req, res) => {
   }
 };
 
-// Supprimer les 20 rendez-vous les plus anciens
-export const deleteOldRendezVous = async (req, res) => {
+export const deleteOldRdv = async (req, res) => {
+  console.log("➡️ Contrôleur deleteOldRdv appelé");
   try {
-    // Récupère les 20 plus anciens RDV
+    // Récupérer les 20 plus anciens rendez-vous
     const oldRdv = await RendezVous.find().sort({ date: 1 }).limit(20);
 
-    if (oldRdv.length === 0) {
-      return res.status(200).json({ message: "Aucun rendez-vous ancien à supprimer." });
+    // Supprimer chacun
+    const idsToDelete = oldRdv.map(r => r._id);
+    await RendezVous.deleteMany({ _id: { $in: idsToDelete } });
+
+    res.json({ message: `${oldRdv.length} anciens rendez-vous supprimés` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+};
+// Confirmer un RDV après paiement
+export const confirmRendezVous = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const rdv = await RendezVous.findById(id);
+    if (!rdv) return res.status(404).json({ error: "RDV introuvable" });
+
+    if (rdv.service.price > 0 && !rdv.isPaid) {
+      return res.status(400).json({ error: "Paiement requis avant confirmation" });
     }
 
-    // Supprime tous les RDV récupérés
-    const ids = oldRdv.map(r => r._id);
-    await RendezVous.deleteMany({ _id: { $in: ids } });
+    rdv.isConfirmed = true; // nouveau champ pour confirmation
+    await rdv.save();
 
-    res.status(200).json({ message: `Les ${oldRdv.length} rendez-vous les plus anciens ont été supprimés.` });
+    res.json({ message: "RDV confirmé", rendezVous: rdv });
   } catch (err) {
-    console.error("Erreur suppression anciens RDV:", err);
-    res.status(500).json({ error: "Erreur serveur lors de la suppression." });
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+};
+
+// Marquer comme payé (Stripe)
+export const payRendezVous = async (req, res) => {
+  try {
+    const { rendezVousId } = req.body;
+    const rdv = await RendezVous.findById(rendezVousId);
+    if (!rdv) return res.status(404).json({ error: "RDV introuvable" });
+
+    rdv.isPaid = true;
+
+    // ⚡️ Assure-toi que date et heure sont bien présentes
+    if (!rdv.date && req.body.date) {
+      rdv.date = new Date(req.body.date);
+    }
+
+    await rdv.save();
+    res.json({ message: "Paiement enregistré", rendezVous: rdv });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+};
+export const createEvent = async (req, res) => {
+  try {
+    const { nom, prenom, email, telephone, date, time, service } = req.body;
+
+    if (!date || !time) {
+      return res.status(400).json({ error: "Date et heure requises" });
+    }
+
+    // Combiner DATE + HEURE
+    const startDateTime = new Date(`${date}T${time}:00`);
+    const endDateTime = new Date(startDateTime.getTime() + 30 * 60000); // +30 min
+
+    // Construire URL Google Calendar
+    const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+      `Rendez-vous : ${service}`
+    )}&dates=${
+      startDateTime.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z"
+    }/${
+      endDateTime.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z"
+    }&details=${encodeURIComponent(
+      `Client : ${prenom} ${nom}\nEmail : ${email}\nTéléphone : ${telephone}`
+    )}`;
+
+    return res.json({
+      message: "Événement généré",
+      event: { googleCalendarUrl }
+    });
+  } catch (error) {
+    console.error("Erreur création event :", error);
+    res.status(500).json({ error: "Erreur serveur" });
   }
 };
