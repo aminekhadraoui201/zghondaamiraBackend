@@ -10,6 +10,7 @@ router.get("/disponibilites", (req, res, next) => {
   console.log("➡️ Route dispo appelée");
   next(); // passe au controller
 }, getDisponibilites);
+router.post("/", controller.createRendezVous);
 
 router.delete("/old", deleteOldRdv);
 // CRUD rendez-vous
@@ -59,7 +60,6 @@ router.post("/create-event", async (req, res) => {
 
 
 
-router.post("/", controller.createRendezVous);
 router.get("/", controller.getAll);
 router.get("/:id", controller.getOne);
 router.put("/:id", controller.update);
