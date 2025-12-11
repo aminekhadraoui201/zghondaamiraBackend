@@ -1,7 +1,9 @@
 import express from "express";
+import Stripe from "stripe";
 import * as controller from "../controllers/rendezVousController.js";
 import  RendezVous  from "../models/RendezVous.js"; // ton modèle Mongoose
 import { getDisponibilites,deleteOldRdv } from "../controllers/rendezVousController.js";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const router = express.Router();
 router.get("/disponibilites", (req, res, next) => {
@@ -111,21 +113,22 @@ router.post("/create-event", async (req, res) => {
 
 
 
-app.post("/pay-test", async (req, res) => {
+router.post("/pay-test", async (req, res) => {
   try {
+    const { amount } = req.body;
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 10,              // 10 centimes = 0.10 €
+      amount: 50, // 1 = 0,01€
       currency: "eur",
-      description: "Test payment 0.10€",
+      payment_method_types: ["card"],
     });
 
     res.json({ clientSecret: paymentIntent.client_secret });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
-
 
 
 
